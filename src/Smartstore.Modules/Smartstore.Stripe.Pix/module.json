@@ -1,0 +1,13 @@
+{
+  "$schema": "../module.schema.json",
+  "Author": "Weslley Murdock",
+  "Group": "Payment",
+  "SystemName": "Smartstore.Stripe.Pix",
+  "FriendlyName": "Pix Stripe Elements",
+  "Description": "Extends the store with PIX Stripe payment.",
+  "Version": "6.3.0",
+  "MinAppVersion": "6.3.0",
+  "Order": 1,
+  "ResourceRootKey": "Plugins.Smartstore.Stripe.Pix",
+  "PrivateReferences": [ "Stripe.net" ]
+}

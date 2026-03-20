@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+	<PropertyGroup>
+		<Product>Smartstore Stripe Pix</Product>
+		<OutputPath>..\..\Smartstore.Web\Modules\Smartstore.Stripe.Pix</OutputPath>
+		<OutDir>$(OutputPath)</OutDir>
+        <CopyLocal>true</CopyLocal>
+	</PropertyGroup>
+	<ItemGroup>
+        <ProjectReference Include="..\..\Smartstore.Web\Smartstore.Web.csproj">
+            <Private>False</Private>
+            <CopyLocal>False</CopyLocal>
+            <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Stripe.net" Version="50.0.0" />
+    </ItemGroup>
+ </Project>

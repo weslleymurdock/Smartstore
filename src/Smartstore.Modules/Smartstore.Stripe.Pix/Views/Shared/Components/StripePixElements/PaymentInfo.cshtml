@@ -1,0 +1,28 @@
+@model Smartstore.Core.Checkout.Payment.ProcessPaymentRequest
+@{
+    Layout = null;
+}
+
+<div class="payment-info stripe-pix-info">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+                <div class="mr-3">
+                    <i class="fa fa-qrcode fa-3x text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading mb-1">@T("Plugins.Payments.Stripe.Pix.InstructionsTitle", "Pagamento via PIX")</h5>
+                    <p class="mb-0 text-muted">
+                        @T("Plugins.Payments.Stripe.Pix.Instructions", "Ao clicar em 'Finalizar Pedido', geraremos um QR Code PIX. Você poderá escanear o código ou usar o 'Copia e Cola' no app do seu banco.")
+                    </p>
+                </div>
+            </div>
+            
+            @* Se você realmente precisar do total aqui, use o OrderTotal do Model *@
+            <div class="mt-2 text-right">
+                <span class="text-muted">@T("Checkout.OrderTotal"):</span>
+                <span class="h5 mb-0 text-primary">@Model.OrderTotal.ToString("C")</span>
+            </div>
+        </div>
+    </div>
+</div>

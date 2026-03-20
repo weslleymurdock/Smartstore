@@ -1,0 +1,63 @@
+@model StripePixDisplayModel
+@{
+    Layout = "_Layout"; 
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">@T("Plugins.Payments.Stripe.Pix.PayWithPix")</h3>
+                    <p class="text-muted">@T("Plugins.Payments.Stripe.Pix.ExpiresAt"): @Model.ExpiresAt.ToString("HH:mm")</p>
+                    
+                    <div class="pix-qr-code-wrapper my-4">
+                        
+                        <img src="@(Model.QrCodeImageUrl)" 
+                             alt="PIX QR Code" class="img-fluid" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pix-input">@T("Plugins.Payments.Stripe.Pix.CopyPaste")</label>
+                        <div class="input-group">
+                            <input type="text" id="pix-input" class="form-control" value="@Model.QrCodeData" readonly>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" onclick="copyPixCode()" type="button">
+                                    @T("Common.Copy")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-4">
+                        @T("Plugins.Payments.Stripe.Pix.WaitingConfirmation")
+                    </div>
+
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary mt-2">
+                        @T("Common.BackToStore")
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyPixCode() {
+        var copyText = document.getElementById("pix-input");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        alert("@T("Plugins.Payments.Stripe.Pix.Copied")");
+    }
+
+    // Opcional: Polling para verificar se o pagamento foi aprovado e redirecionar
+    setInterval(function() {
+        // Você pode criar um endpoint 'CheckStatus' que verifica se a ordem associada à intent está 'Paid'
+        $.getJSON('@Url.Action("CheckPaymentStatus", "StripePix")' + '?id=@Model.PaymentIntentId', function(data) {
+            if (data.paid) {
+                window.location.href = '@Url.Action("Completed", "Checkout")';
+            }
+        });
+    }, 5000);
+</script>

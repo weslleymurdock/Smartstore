@@ -1,0 +1,111 @@
+﻿<Language Name="English" IsDefault="false" IsRightToLeft="false">
+	<LocaleResource Name="Plugins.FriendlyName.Smartstore.Stripe.Pix" AppendRootKey="false">
+		<Value>Stripe PIX</Value>
+	</LocaleResource>
+	<LocaleResource Name="Plugins.Description.Smartstore.Stripe.Pix" AppendRootKey="false">
+		<Value>Extends the store with Stripe PIX payment.</Value>
+	</LocaleResource>
+
+    <!-- 
+        TODO: (mh) (core) 
+        Alter this when the following issue is resolved
+        https://github.com/smartstore/Smartstore/issues/574
+        The following two resources should be display in the frontend.
+    -->
+	<LocaleResource Name="Plugins.FriendlyName.Payments.StripeElements.Pix" AppendRootKey="false">
+		<Value>Pay now with Stripe PIX</Value>
+	</LocaleResource>
+	<LocaleResource Name="Plugins.Description.Payments.StripeElements.Pix" AppendRootKey="false">
+		<Value>Generate an QR Code for PIX payment with Stripe.</Value>
+	</LocaleResource>
+	
+	<LocaleResource Name="Plugins.Smartstore.Stripe.Pix" AppendRootKey="false">
+		<Children>
+			<LocaleResource Name="AdminInstruction">
+				<Value>
+					<![CDATA[
+						<p>To set up <b>Stripe</b>:</p>
+                        <ul>
+                            <li>Create an account with Stripe or log in with your existing account.</li>
+                            <li>Navigate to <b>Developer / API Key</b>.</li>
+                            <li>Copy the <b>Publishable Key</b> and the <b>Secret Key</b> below into the fields provided.</li>
+                            <li>Now add a new endpoint by clicking the Create Webhook button.</li>
+                        </ul>
+					]]>
+				</Value>
+			</LocaleResource>
+            <LocaleResource Name="CookieInfo">
+                <Value>Stripe uses cookies to display and process the payment transaction.</Value>
+            </LocaleResource>
+            <LocaleResource Name="Copied">
+                <Value>PIX Code copied.</Value>
+            </LocaleResource>
+            <LocaleResource Name="PublicApiKey">
+                <Value>Public API Key</Value>
+            </LocaleResource>
+            <LocaleResource Name="PublicApiKey.Hint">
+                <Value>Enter the public API key here, which can be viewed in the Stripe dashboard.</Value>
+            </LocaleResource>
+            <LocaleResource Name="SecrectApiKey">
+                <Value>Secret API Key</Value>
+            </LocaleResource>
+            <LocaleResource Name="SecrectApiKey.Hint">
+                <Value>Enter the secret API key here, which can be viewed in the Stripe dashboard.</Value>
+            </LocaleResource>
+            <LocaleResource Name="WebhookSecret">
+                <Value>Webhook Secret Key</Value>
+            </LocaleResource>
+            <LocaleResource Name="WebhookSecret.Hint">
+                <Value>Enter the secret key for the webhook here.</Value>
+            </LocaleResource>
+            <LocaleResource Name="WebhookUrl">
+                <Value>Endpoint URL</Value>
+            </LocaleResource>
+            <LocaleResource Name="WebhookUrl.Hint">
+                <Value>Store this URL in your Stripe account as the endpoint URL for the webhook.</Value>
+            </LocaleResource>
+            <LocaleResource Name="CreateWebhook">
+                <Value>Create webhook</Value>
+            </LocaleResource>
+			<LocaleResource Name="AdditionalFee">
+				<Value>Additional fee</Value>
+			</LocaleResource>
+			<LocaleResource Name="AdditionalFee.Hint">
+				<Value>Enter additional fee to charge your customers.</Value>
+			</LocaleResource>
+			<LocaleResource Name="AdditionalFeePercentage">
+				<Value>Additional fee. Use percentage</Value>
+			</LocaleResource>
+			<LocaleResource Name="AdditionalFeePercentage.Hint">
+				<Value>Specifies whether to apply a additional percentage fee to the order total. If not enabled, a fixed value is used.</Value>
+			</LocaleResource>
+            <LocaleResource Name="ShowButtonInMiniShoppingCart">
+                <Value>Show button in mini shopping cart</Value>
+            </LocaleResource>
+            <LocaleResource Name="ShowButtonInMiniShoppingCart.Hint">
+                <Value>Specifies whether to show the checkout button in the mini shopping cart.</Value>
+            </LocaleResource>
+            <LocaleResource Name="PaymentInfo">
+                <Value>
+                    After completing the order you will be redirected to an external payment provider if necessary,
+                    where you can make the payment for your order.
+                </Value>
+            </LocaleResource>
+            <LocaleResource Name="OrderNotFound">
+                <Value>The order with the PaymentIntent-Id {0} was not found.</Value>
+            </LocaleResource>
+             <LocaleResource Name="ExpiresAt">
+                <Value>Payment expires at: {0}.</Value>
+            </LocaleResource>
+                         <LocaleResource Name="PayWithPix">
+                <Value>Pague com PIX.</Value>
+            </LocaleResource>
+             <LocaleResource Name="CopyPaste">
+                <Value>PIX Code to copy and paste.</Value>
+            </LocaleResource>
+             <LocaleResource Name="WaitingConfirmation">
+                <Value>Waiting for payment confirmation.</Value>
+            </LocaleResource>
+		</Children>
+	</LocaleResource>
+</Language>
