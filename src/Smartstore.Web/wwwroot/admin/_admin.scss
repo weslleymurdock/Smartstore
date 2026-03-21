@@ -736,6 +736,9 @@ legend {
 }
 
 .adminContent {
+    --adminRow-width: 1000px;
+    --adminTitle-width: 0.4;
+    --adminContent-width: 0.6;
     --adminRow-margin-y: 0.8rem;
 
     display: block;
@@ -757,24 +760,21 @@ legend {
     .adminRow {
         display: flex;
         flex-wrap: wrap;
-        margin-top: 0.4rem;
-        margin-bottom: 0.4rem;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        margin-block: 0.4rem;
+        margin-inline: 0 !important;
     }
 
     div.adminRow {
-        // div type rows do margin collapse, fix it.
+        // DIV type rows do margin collapse, fix it.
         margin-block: var(--adminRow-margin-y, 0.8rem);
     }
 
     .adminTitle,
     .adminData {
         position: relative;
-        @include make-col-ready();
-        padding-right: 0;
-        padding-left: 0;
         display: block;
+        @include make-col-ready();
+        padding-inline: 0;
     }
 
     .adminTitle {
@@ -823,14 +823,15 @@ legend {
 
         @include media-breakpoint-up(lg) {
             > .adminTitle {
-                flex-basis: calc(400px - var(--adminContent-padding, 0px));
-                max-width: 40%;
+                flex-basis: calc(calc(var(--adminRow-width) * var(--adminTitle-width)) - var(--adminContent-padding, 0px));
+                max-width: calc(var(--adminTitle-width) * 100%);
             }
 
             > .adminData {
-                flex-basis: 600px;
-                width: 600px;
-                max-width: 60%;
+                --w: calc(var(--adminRow-width) * var(--adminContent-width));
+                flex-basis: var(--w);
+                width: var(--w);
+                max-width: calc(var(--adminContent-width) * 100%);
 
                 &.wide {
                     flex-grow: 1;
@@ -838,13 +839,18 @@ legend {
                     max-width: 100%;
                 }
             }
+
+            .adminContainer {
+                flex-basis: var(--adminRow-width);
+                width: var(--adminRow-width);
+                max-width: 100%;
+            }
         }
     }
 
     &.adminContent-boxed {
         --adminContent-padding: 1rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-inline: 1rem;
     }
 }
 
@@ -1110,7 +1116,11 @@ legend {
         font-family: $headings-font-family;
         font-weight: $headings-font-weight;
         color: $gray-600;
-        border-bottom: 1px solid rgba(#000, 0.11);
+        border-bottom: 1px solid rgba($black, 0.11);
+    }
+
+    .info {
+        color: $gray-600;
     }
 
     .sub-title {

@@ -72,6 +72,7 @@
 - **EasyCredit**
   - Get cart by using the current store ID explicitly.
   - The checkboxes for overriding multistore settings were missing.
+- Take the customer's preferred shipping method into account when updating the shopping cart.
 
 
 ## Smartstore 6.3.0
