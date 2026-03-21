@@ -76,7 +76,7 @@ public class StripePixElementsProvider : PaymentMethodBase, IConfigurable
         => new(nameof(StripePixAdminController.Configure), "StripePixAdmin", new { area = "Admin" });
 
     public override Widget GetPaymentInfoWidget()
-        => new ComponentWidget(typeof(StripePixElementsViewComponent), new { host = "checkout" });
+        => new ComponentWidget(typeof(StripePixElementsViewComponent), new { host = "display" });
 
     public override Task<ProcessPaymentRequest> GetPaymentInfoAsync(IFormCollection form)
     {

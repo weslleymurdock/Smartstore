@@ -1,4 +1,5 @@
-﻿using System.IO; 
+﻿using System.IO;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,12 @@ using Smartstore.Core.Checkout.Orders;
 using Smartstore.Core.Checkout.Payment;
 using Smartstore.Core.Checkout.Shipping;
 using Smartstore.Core.Checkout.Tax;
+using Smartstore.Core.Common;
 using Smartstore.Core.Common.Services;
 using Smartstore.Core.Data;
 using Smartstore.Core.Identity;
-using Smartstore.Core.Stores; 
+using Smartstore.Core.Stores;
+using Smartstore.Json;
 using Smartstore.StripeElements.Models;
 using Smartstore.StripeElements.Providers;
 using Smartstore.StripeElements.Services;
@@ -93,92 +96,90 @@ public class StripePixController : ModuleController
     }
 
 
-    /// <summary>
-    /// AJAX
-    /// Called after buyer clicked buy-now-button but before the order was created.
-    /// Processes payment and return redirect URL if there is any.
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> ConfirmOrder(string formData)
     {
         string redirectUrl = null;
         var messages = new List<string>();
         var success = false;
-
+        Money totalAmount = default!;
         try
         {
             var store = Services.StoreContext.CurrentStore;
             var customer = Services.WorkContext.CurrentCustomer;
+            var workingCurrency = Services.WorkContext.WorkingCurrency;
 
             if (!HttpContext.Session.TryGetObject<ProcessPaymentRequest>("OrderPaymentInfo", out var paymentRequest) || paymentRequest == null)
             {
                 paymentRequest = new ProcessPaymentRequest();
             }
 
-
             paymentRequest.StoreId = store.Id;
             paymentRequest.CustomerId = customer.Id;
             paymentRequest.PaymentMethodSystemName = StripePixElementsProvider.SystemName;
 
-            // We must check here if an order can be placed to avoid creating unauthorized transactions.
             var (warnings, cart) = await _orderProcessingService.ValidateOrderPlacementAsync(paymentRequest);
             if (warnings.Count == 0)
             {
                 if (await _orderProcessingService.IsMinimumOrderPlacementIntervalValidAsync(customer, store))
                 {
                     var state = _checkoutStateAccessor.CheckoutState.GetCustomState<StripePixCheckoutState>();
+
+                    // 1. Get cart total converted to actual currency
                     var cartTotal = await _orderCalculationService.GetShoppingCartTotalAsync(cart, true);
-                    var convertedTotal = cartTotal.ConvertedAmount.Total.Value;
+                    totalAmount = cartTotal.ConvertedAmount.Total.Value;
+
+                    // 2. Convert to smallest currency unit 
+                    var amountInCents = _roundingHelper.ToSmallestCurrencyUnit(totalAmount);
+                    var currencyCode = workingCurrency.CurrencyCode.ToLower();
 
                     var paymentIntentService = new PaymentIntentService();
                     PaymentIntent paymentIntent = null;
 
-                    var shippingOption = customer.GenericAttributes.Get<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, store.Id);
-                    var shipping = shippingOption != null
-                        ? await GetShippingAddressAsync(customer, shippingOption.Name)
-                        : null;
-
-                    // Criar ou Atualizar Intent específica para PIX
-                    var options = await _stripeHelper.CreatePixPaymentIntentOptionsAsync(paymentRequest, _settings);
-
                     if (!state.PaymentIntentId.HasValue())
                     {
-                        paymentIntent = await paymentIntentService.CreateAsync(options);
+                        // 3. Ensure the options have the right values
+                        var options = await _stripeHelper.CreatePixPaymentIntentOptionsAsync(paymentRequest, _settings, amountInCents);
 
+                        paymentIntent = await paymentIntentService.CreateAsync(options);
                         state.PaymentIntentId = paymentIntent.Id;
                     }
                     else
                     {
-                        // Update Stripe Payment Intent.
+                        // 4. Update with syncronized data
                         var intentUpdateOptions = new PaymentIntentUpdateOptions
                         {
-                            Amount = _roundingHelper.ToSmallestCurrencyUnit(convertedTotal),
-                            Currency = Services.WorkContext.WorkingCurrency.CurrencyCode.ToLower(),
-                            PaymentMethod = state.PaymentMethod,
-                            Shipping = shipping
+                            Amount = amountInCents,
+                            Currency = currencyCode
                         };
 
                         paymentIntent = await paymentIntentService.UpdateAsync(state.PaymentIntentId, intentUpdateOptions);
                     }
 
-                    // Confirm the intent to generate the QR Code
+                    // 5. Intent confirm to QR Code generation
                     var confirmOptions = new PaymentIntentConfirmOptions
                     {
-                        ReturnUrl = store.GetAbsoluteUrl(Url.Action("RedirectionResult", "StripePix").TrimStart('/')),
-                        PaymentMethodData = new PaymentIntentPaymentMethodDataOptions { Type = "pix" }
+                        PaymentMethodData = new PaymentIntentPaymentMethodDataOptions
+                        {
+                            Type = "pix"
+                        },
+                        // URL where Stripe go back if it have auth (rare in PIX, but useful)
+                        ReturnUrl = store.GetAbsoluteUrl(Url.Action("RedirectionResult", "StripePix"))
                     };
 
                     paymentIntent = await paymentIntentService.ConfirmAsync(paymentIntent.Id, confirmOptions);
 
-                    // Stripe returns an "NextAction" of type "pix_display_qr_code"
                     if (paymentIntent.Status == "requires_action")
                     {
-                        // We redirect to an action which displays the QR Code
                         redirectUrl = Url.Action("DisplayQrCode", "StripePix", new { id = paymentIntent.Id });
+                        success = true;
+                        state.IsConfirmed = true; // Set as confirmed to Smartstore checkout
+                    }
+                    else
+                    {
+                        messages.Add("Stripe retornou status inesperado: " + paymentIntent.Status);
                     }
 
-                    success = true;
-                    state.IsConfirmed = true;
                     return Json(new { success, redirectUrl });
                 }
                 else
@@ -191,6 +192,11 @@ public class StripePixController : ModuleController
                 messages.AddRange(warnings.Select(HtmlUtility.ConvertPlainTextToHtml));
             }
         }
+        catch (StripeException stEx)
+        {
+            Logger.Error(stEx, "Erro na API do Stripe ao processar PIX.");
+            messages.Add($"Erro Stripe: {stEx.Message} (Valor enviado: {totalAmount})");
+        }
         catch (Exception ex)
         {
             Logger.Error(ex);
@@ -198,6 +204,37 @@ public class StripePixController : ModuleController
         }
 
         return Json(new { success, redirectUrl, messages });
+    }
+
+   [HttpPost]
+    public async Task<IActionResult> GetUpdatePaymentRequest(ProductVariantQuery query, bool? useRewardPoints)
+    {
+        var success = false;
+        var message = string.Empty;
+        var store = Services.StoreContext.CurrentStore;
+        var customer = Services.WorkContext.CurrentCustomer;
+        var warnings = new List<string>();
+        var cart = await _shoppingCartService.GetCartAsync(customer, ShoppingCartType.ShoppingCart, store.Id);
+
+        var isCartValid = await _shoppingCartService.SaveCartDataAsync(cart, warnings, query, useRewardPoints, false);
+        if (isCartValid)
+        {
+
+            var stripePaymentRequest = await _stripeHelper.GetStripePaymentRequestAsync();
+
+            stripePaymentRequest.RequestPayerName = false;
+            stripePaymentRequest.RequestPayerEmail = false;
+
+            var paymentRequest = JsonSerializer.Serialize(stripePaymentRequest, SmartJsonOptions.CamelCasedIgnoreDefaults);
+
+            return Json(new { success = true, paymentRequest });
+        }
+        else
+        {
+            message = string.Join(Environment.NewLine, warnings);
+        }
+
+        return Json(new { success, message });
     }
 
     [HttpGet]

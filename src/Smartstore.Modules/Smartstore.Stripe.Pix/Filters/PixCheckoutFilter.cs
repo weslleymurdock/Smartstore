@@ -46,10 +46,7 @@ public class PixCheckoutFilter : IAsyncResultFilter
     }
 
     public async Task OnResultExecutionAsync(ResultExecutingContext filterContext, ResultExecutionDelegate next)
-    {
-
-        await next();
-
+    { 
         var customer = _services.WorkContext.CurrentCustomer;
         var action = filterContext.RouteData.Values.GetActionName();
 
@@ -75,7 +72,8 @@ public class PixCheckoutFilter : IAsyncResultFilter
                         
                     });
                 }
-
+                // Reset property for backward navigation.
+                checkoutState.ButtonUsed = false;
                 filterContext.Result = new RedirectToActionResult(nameof(CheckoutController.Confirm), "Checkout", new { area = string.Empty });
             }
         }

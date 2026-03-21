@@ -1,34 +1,34 @@
 ﻿@model StripePixCheckoutState
-<h1> CHECKOUT STATE VIEW </h1>
+
 <script data-origin="stripe-pix-confirm">
     var isConfirmed = @(Model.IsConfirmed.ToString().ToLower());
     
     $(function () {
-        // Escuta o evento de submissão do pedido do Smartstore
+        // listen to submit event from checkout
         $(document).on('submitOrder', function (e) {
-            // Se já confirmamos e o Stripe processou, liberamos o fluxo padrão
+            // If already confirmed and stripe has processed, release the flow
             if (isConfirmed) {
                 return;
             }
 
-            // Caso contrário, interceptamos para processar o PIX primeiro
+            // Otherwise, intercept to process PIX first
             e.isOrderValid = false; 
             var data = $('#confirm-order-form').serializeArray();
 
-            // Desativa o botão de compra para evitar cliques duplos
+            // Disables buy button to avoid double clicks
             $(document).trigger({ type: 'disableBuyButton', disable: true });
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("ConfirmOrder", "StripePix")', // Aponta para o SEU controller
+                url: '@Url.Action("ConfirmOrder", "StripePix")', 
                 data: { "formData": JSON.stringify(data) },
                 success: function (response) {
                     if (response.success) {
                         if (response.redirectUrl) {
-                            // REDIRECIONAMENTO: Aqui ele vai para a sua Action DisplayQrCode
+                            // Redirect to Action DisplayQrCode
                             window.location.href = response.redirectUrl;
                         } else {
-                            // Caso não precise de redirecionamento, confirma e clica no botão original
+                            // If doesnt need redirect, confirm and trigger the original button
                             isConfirmed = true;
                             triggerBuyButton(false);
                         }
@@ -46,7 +46,6 @@
             });
         });
 
-        // Se o Webhook ou RedirectionResult marcou para submeter automaticamente
         @if (Model.SubmitForm)
         {
             <text>

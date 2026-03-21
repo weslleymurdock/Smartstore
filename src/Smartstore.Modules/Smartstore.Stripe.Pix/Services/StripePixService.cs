@@ -5,7 +5,6 @@ using Smartstore.Core.Checkout.Cart;
 using Smartstore.Core.Checkout.Orders;
 using Smartstore.Core.Checkout.Payment;
 using Smartstore.Core.Checkout.Tax;
-using Smartstore.Core.Common;
 using Smartstore.Core.Common.Services;
 using Smartstore.Core.Localization;
 using Smartstore.StripeElements.Models;
@@ -119,7 +118,7 @@ public class StripePixService
             var createOptions = new WebhookEndpointCreateOptions
             {
                 ApiVersion = ApiVersion,
-                Url = storeUrl + "stripe/webhookhandler",
+                Url = storeUrl + "stripe/pix/webhookhandler",
                 EnabledEvents =
                 [
                     "payment_intent.succeeded",
@@ -138,28 +137,29 @@ public class StripePixService
         }
     }
 
-    public async Task<PaymentIntentCreateOptions> CreatePixPaymentIntentOptionsAsync(ProcessPaymentRequest request, StripePixSettings settings)
+    public async Task<PaymentIntentCreateOptions> CreatePixPaymentIntentOptionsAsync(ProcessPaymentRequest request, StripePixSettings settings, int amount)
     {
         var customer = _services.WorkContext.CurrentCustomer;
-
-        return new PaymentIntentCreateOptions
+        var options = new PaymentIntentCreateOptions
         {
-            Amount = _roundingHelper.ToSmallestCurrencyUnit(decimal.Parse(request.OrderTotal.ToString()),currency: new Core.Common.Currency()),
-            Currency = "brl", // PIX é exclusivo BRL
-            PaymentMethodTypes = new List<string> { "pix" },
+            Amount = amount,
+            Currency = "brl",
+            PaymentMethodTypes = ["pix"],
             PaymentMethodOptions = new PaymentIntentPaymentMethodOptionsOptions
             {
                 Pix = new PaymentIntentPaymentMethodOptionsPixOptions
                 {
-                    ExpiresAfterSeconds = settings.ExpiresAfterSeconds > 0 ? settings.ExpiresAfterSeconds : 3600 // Default 1h
+                    ExpiresAfterSeconds = settings.ExpiresAfterSeconds > 0 ? settings.ExpiresAfterSeconds : 86400// Default 1d
                 }
             },
+            PaymentMethod = "pix",
             Metadata = new Dictionary<string, string>
             {
                 ["order_guid"] = request.OrderGuid.ToString(),
                 ["customer_id"] = customer.Id.ToString()
             }
         };
+        return options;
     }
 
     public Task<bool> IsStripeElementsActive()

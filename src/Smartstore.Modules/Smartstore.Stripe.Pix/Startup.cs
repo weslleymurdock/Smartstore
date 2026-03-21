@@ -14,9 +14,6 @@ internal class Startup : StarterBase
     {
         services.Configure<MvcOptions>(o =>
         {
-            o.Filters.AddEndpointFilter<StripePixCheckoutFilter, SmartController>()
-                .ForController("ShoppingCart")
-                .ForAction(nameof(ShoppingCartController.OffCanvasShoppingCart));
             o.Filters.AddEndpointFilter<PixCheckoutFilter, CheckoutController>(order: 200)
                 .ForAction(x => x.PaymentMethod())
                 .ForAction(x => x.Confirm())
