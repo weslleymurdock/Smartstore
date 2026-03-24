@@ -242,7 +242,7 @@ Logger SetupSerilog(IConfiguration configuration)
                 .Filter.ByIncludingOnly(IsDbSource)
                 .Filter.ByExcluding(IsFileSource)
                 .Filter.ByExcluding(IsApiQueryWarning)
-                .WriteTo.DbContext(period: TimeSpan.FromSeconds(5), batchSize: 50, eagerlyEmitFirstEvent: false, queueLimit: 1000);
+                .WriteTo.DbContext(period: TimeSpan.FromSeconds(10), batchSize: 50, eagerlyEmitFirstEvent: false, queueLimit: 1000);
         }, restrictedToMinimumLevel: dbMinLevel, levelSwitch: null);
 
     return builder.CreateLogger();

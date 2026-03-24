@@ -5,10 +5,11 @@
 
 @{
     ViewBag.Title = "Google reCAPTCHA";
-    Layout = "_AdminPopupLayout";
+    var isPopup = base.Context.Request.Query["popup"].ToString().ToBool();
+    Layout = isPopup ? "_AdminPopupLayout" : "_ConfigureModule";
 }
 
-<form asp-action="GoogleRecaptcha" asp-route-btnId="@ViewBag.BtnId">
+<form asp-action="GoogleRecaptcha" asp-route-btnId="@ViewBag.BtnId" asp-route-popup="@isPopup.ToStringLower()">
     <div class="section-header">
         <div class="title">
             <img src="https://www.gstatic.com/images/icons/material/product/2x/recaptcha_48dp.png" height="32" />

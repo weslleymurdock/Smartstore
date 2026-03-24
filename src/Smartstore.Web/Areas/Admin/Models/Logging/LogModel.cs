@@ -47,5 +47,14 @@
         public string UserAgent { get; set; }
 
         public string ViewUrl { get; set; }
+
+        public int OccurrenceCount { get; set; }
+
+        /// <summary>
+        /// JSON array of additional UTC occurrence timestamps (after the first hit).
+        /// Null when <see cref="OccurrenceCount"/> is 1.
+        /// </summary>
+        [LocalizedDisplay("*Occurrences")]
+        public string Occurrences { get; set; }
     }
 }
